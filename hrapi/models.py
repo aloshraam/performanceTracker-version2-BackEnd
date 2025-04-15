@@ -1,0 +1,188 @@
+from django.db import models
+from django.contrib.auth.models import AbstractUser
+from django.core.validators import MinValueValidator,MaxValueValidator
+
+
+
+class CustomUser(AbstractUser):
+    user_type_choices=[
+        ("hr","hr"),
+        ("employee","employee"),
+        ("teamlead","teamlead"),
+    ]
+    user_type=models.CharField(max_length=50,choices=user_type_choices,default="admin")
+    
+    
+class Hr(CustomUser):
+    name=models.CharField(max_length=200)
+    email_address=models.CharField(max_length=100)
+    phoneno=models.PositiveIntegerField()
+    home_address=models.CharField(max_length=100,null=True)
+    job_title=models.CharField(max_length=100,null=True)
+    position=models.CharField(max_length=100,null=True)
+    department=models.CharField(max_length=100,null=True)
+    prefferred_timezone=models.CharField(max_length=100,null=True)
+    linkedin_profile=models.CharField(max_length=100,null=True)
+    skills=models.CharField(max_length=100,null=True)
+    certification=models.ImageField(upload_to="images",null=True)
+    experience=models.ImageField(upload_to="images",null=True)
+    is_adminapproved=models.BooleanField(default=False) 
+  
+
+class TeamLead(CustomUser):
+    name=models.CharField(max_length=200)
+    email_address=models.CharField(max_length=100)
+    phoneno=models.PositiveIntegerField()
+    home_address=models.CharField(max_length=100,null=True)
+    job_title=models.CharField(max_length=100,null=True)
+    position=models.CharField(max_length=100,null=True)
+    department=models.CharField(max_length=100,null=True)
+    prefferred_timezone=models.CharField(max_length=100,null=True)
+    linkedin_profile=models.CharField(max_length=100,null=True)
+    skills=models.CharField(max_length=100,null=True)
+    certification=models.ImageField(upload_to="images",null=True)
+    experience=models.ImageField(upload_to="images",null=True)  
+    is_adminapproved=models.BooleanField(default=False)
+    
+    def __str__(self):
+        return self.name
+   
+    
+class Employee(CustomUser):
+    name=models.CharField(max_length=200)
+    email_address=models.CharField(max_length=100)
+    phoneno=models.PositiveIntegerField()
+    home_address=models.CharField(max_length=100,null=True)
+    job_title=models.CharField(max_length=100,null=True)
+    department=models.CharField(max_length=100,null=True)
+    linkedin_profile=models.CharField(max_length=100,null=True)
+    manager_name=models.CharField(max_length=100,null=True)
+    resume=models.ImageField(upload_to="images",null=True)
+    start_date=models.DateField(auto_now_add=True,null=True)
+    in_team=models.BooleanField(default=False)
+    is_adminapproved=models.BooleanField(default=False)
+
+
+    def __str__(self):
+        return self.name
+    
+class Teams(models.Model):
+    name=models.CharField(max_length=100)
+    teamlead=models.OneToOneField(TeamLead,on_delete=models.CASCADE,unique=True) 
+    members=models.ManyToManyField(Employee)
+    is_approved=models.BooleanField(default=False)
+    
+    def __str__(self):
+        return self.name
+    
+    
+class Projects(models.Model):
+    topic=models.CharField(max_length=100)
+    description=models.CharField(max_length=200)
+    end_date=models.DateField()
+    options=[
+        ("pending","pending"),
+        ("Ongoing","Ongoing"),
+        ("completed","completed")
+    ]
+    project_status=models.CharField(max_length=50,choices=options,default="pending")
+    link=models.CharField(max_length=100,null=True)
+    
+    def __str__(self):
+        return self.topic
+    
+    
+class ProjectUpdates(models.Model):
+    project=models.ForeignKey(Projects,on_delete=models.CASCADE)
+    description=models.CharField(max_length=200)
+
+class Project_assign(models.Model):
+    project = models.OneToOneField(Projects, on_delete=models.CASCADE, unique=True)
+    teamlead = models.ForeignKey(TeamLead, on_delete=models.CASCADE)
+    team = models.ForeignKey(Teams, on_delete=models.CASCADE)
+
+    STATUS_CHOICES = [
+        ("pending", "pending"),
+        ("completed", "completed"),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")  # 👈 ADD THIS
+
+    def __str__(self):
+        return self.project.topic
+
+
+class ProjectDetail(models.Model):
+    teamlead=models.ForeignKey(TeamLead,on_delete=models.CASCADE)    
+    projectassigned=models.ForeignKey(Project_assign,on_delete=models.CASCADE)  
+    assigned_part=models.CharField(max_length=100)
+    assigned_person=models.OneToOneField(Employee,on_delete=models.CASCADE)
+    options=[
+        ("In progress","In progress"),
+        ("completed","completed")
+    ]
+    status=models.CharField(max_length=50,choices=options,default="In progress")
+    project_link=models.CharField(max_length=100,null=True)
+    
+    def __str__(self):
+        return self.projectassigned.project.topic
+    
+
+class TaskChart(models.Model):
+    project_detail=models.ForeignKey(ProjectDetail,on_delete=models.CASCADE) 
+    assigned_person=models.OneToOneField(Employee,on_delete=models.CASCADE)
+    start_date = models.DateField(auto_now_add=True)
+    end_date = models.DateField()
+    total_days=models.IntegerField()
+    def __str__(self):
+        return self.project_detail.projectassigned.project.topic
+     
+    
+    
+class TaskUpdateChart(models.Model):
+    task = models.ForeignKey(TaskChart, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    updated_by=models.ForeignKey(Employee, on_delete=models.CASCADE)
+    description=models.CharField(max_length=100)
+    date_updated=models.DateTimeField(auto_now_add=True) 
+    def __str__(self):
+
+        return self.name
+    
+    
+class Performance_assign(models.Model):
+    teamlead=models.ForeignKey(TeamLead,on_delete=models.CASCADE,null=True)
+    employee=models.OneToOneField(Employee,on_delete=models.CASCADE,unique=True)
+    performance=models.FloatField()
+
+    
+    
+class Meeting(models.Model):
+    organizer=models.CharField(max_length=100)
+    title=models.CharField(max_length=100)
+    link=models.CharField(max_length=100,null=True)
+    date=models.DateField(null=True)
+    time=models.TimeField(null=True)
+    posted_at=models.DateTimeField(auto_now_add=True)
+    participants = models.ManyToManyField(CustomUser, related_name='meetings')
+
+    
+class DailyTask(models.Model):
+    teamlead=models.ForeignKey(TeamLead,on_delete=models.CASCADE)    
+    task=models.CharField(max_length=100)
+    emp=models.ForeignKey(Employee, on_delete=models.CASCADE)
+    file=models.FileField(upload_to="files",null=True)
+    is_completed=models.BooleanField(default=False)
+    due_date=models.DateField(null=True)
+    
+class Rating(models.Model):
+    teamlead=models.ForeignKey(TeamLead,on_delete=models.CASCADE)    
+    emp=models.ForeignKey(Employee, on_delete=models.CASCADE)
+    rating=models.PositiveIntegerField(validators=[MinValueValidator(1),MaxValueValidator(5)])
+    comment=models.CharField(max_length=100)
+
+   
+class TechnologiesList(models.Model):
+    no=models.PositiveIntegerField()
+    data=models.CharField(max_length=100)
+
+
