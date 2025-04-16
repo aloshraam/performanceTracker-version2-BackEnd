@@ -57,7 +57,7 @@ class Employee(CustomUser):
     department=models.CharField(max_length=100,null=True)
     linkedin_profile=models.CharField(max_length=100,null=True)
     manager_name=models.CharField(max_length=100,null=True)
-    resume=models.ImageField(upload_to="images",null=True)
+    resume = models.FileField(upload_to="resumes/", null=True, blank=True)
     start_date=models.DateField(auto_now_add=True,null=True)
     in_team=models.BooleanField(default=False)
     is_adminapproved=models.BooleanField(default=False)

@@ -25,12 +25,12 @@ SECRET_KEY = 'django-insecure-mgo6j1!!!0-x)%e4!(-x8+ebl3*!6kh91j#ls-1-)l5a9!jxmg
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*","localhost:5173"]
+ALLOWED_HOSTS = ["*", "localhost:5173"]
 SESSION_COOKIE_SAMESITE = 'None'
 CSRF_COOKIE_SAMESITE = 'None'
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-AUTH_USER_MODEL="hrapi.CustomUser"
+AUTH_USER_MODEL = "hrapi.CustomUser"
 
 
 # Application definition
@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     'teamleadapi',
     'employeeapi',
     'corsheaders',
-
 ]
 
 MIDDLEWARE = [
@@ -131,14 +130,25 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-CORS_ALLOW_ALL_ORIGINS= True
+# CORS settings
+CORS_ALLOW_ALL_ORIGINS = True
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+]
+
+# DRF settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
@@ -148,10 +158,7 @@ REST_FRAMEWORK = {
     ],
 }
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-]
 
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:5173",
-]
+# ✅ Media files config
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
